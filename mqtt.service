@@ -1,0 +1,14 @@
+[Unit]
+Description=MQTT Client
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 -u mqtt_client.py
+WorkingDirectory=/Desktop/tu-diplomna-rabota-mqtt
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

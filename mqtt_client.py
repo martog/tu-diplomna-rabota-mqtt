@@ -3,15 +3,16 @@ import os
 import urllib.parse as urlparse
 import re
 import hashlib
-import RPi.GPIO as GPIO 
+import RPi.GPIO as GPIO
 
 # Define event callbacks
 
 
-RELAY_1_PIN = 23;
-RELAY_2_PIN = 24;
-RELAY_3_PIN = 22;
-RELAY_4_PIN = 27;
+RELAY_1_PIN = 23
+RELAY_2_PIN = 24
+RELAY_3_PIN = 22
+RELAY_4_PIN = 27
+
 
 def setup_relay_pins():
     GPIO.setmode(GPIO.BCM)
@@ -19,30 +20,39 @@ def setup_relay_pins():
     GPIO.setup(RELAY_2_PIN, GPIO.OUT)
     GPIO.setup(RELAY_3_PIN, GPIO.OUT)
     GPIO.setup(RELAY_4_PIN, GPIO.OUT)
-    
+
+
 def relay_1_on():
     GPIO.output(RELAY_1_PIN, 0)
 
+
 def relay_1_off():
     GPIO.output(RELAY_1_PIN, 1)
- 
+
+
 def relay_2_on():
     GPIO.output(RELAY_2_PIN, 0)
-    
+
+
 def relay_2_off():
     GPIO.output(RELAY_2_PIN, 1)
-    
+
+
 def relay_3_on():
     GPIO.output(RELAY_3_PIN, 0)
-    
+
+
 def relay_3_off():
     GPIO.output(RELAY_3_PIN, 1)
-    
+
+
 def relay_4_on():
     GPIO.output(RELAY_4_PIN, 0)
-    
+
+
 def relay_4_off():
     GPIO.output(RELAY_4_PIN, 1)
+
 
 def on_connect(mosq, obj, rc):
     print("rc: " + str(rc))
@@ -52,33 +62,32 @@ def on_message(mosq, obj, msg):
     #print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
     topic = msg.topic
     message = msg.payload.decode("utf-8")
-    
+
     print(topic, message)
-    
+
     if topic == "device_1":
         if message == "On":
             relay_1_on()
         else:
             relay_1_off()
-            
+
     if topic == "device_2":
         if message == "On":
             relay_2_on()
         else:
             relay_2_off()
-            
+
     if topic == "device_3":
         if message == "On":
             relay_3_on()
         else:
             relay_3_off()
-        
+
     if topic == "device_4":
         if message == "On":
             relay_4_on()
         else:
             relay_4_off()
-                    
 
 
 def on_publish(mosq, obj, mid):
@@ -99,7 +108,7 @@ def get_device_serial():
     with open('/proc/cpuinfo', 'r') as f:
         device_serial = f.read()
         search = re.search(
-            "\nSerial\s+:\s+(?P<serial>[0-9a-f]{16})$", device_serial)
+            r"\nSerial\s+:\s+(?P<serial>[0-9a-f]{16})$", device_serial)
 
         if search is None:
             raise BaseException("Cannot find device serial!")
@@ -129,7 +138,6 @@ if __name__ == "__main__":
         device_serial = get_device_serial()
         password = hashlib.md5(device_serial.encode('utf-8')).hexdigest()
 
-
         # Connect
         mqttc.username_pw_set(device_serial, password)
         mqttc.connect("mqtt.eclipse.org", 1883, 60)
@@ -139,7 +147,6 @@ if __name__ == "__main__":
         mqttc.subscribe("device_2", 0)
         mqttc.subscribe("device_3", 0)
         mqttc.subscribe("device_4", 0)
-
 
         # Publish a message
         # mqttc.publish("hello/world", "my message")
