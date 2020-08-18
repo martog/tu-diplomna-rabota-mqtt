@@ -62,8 +62,11 @@ mqttc.username_pw_set(device_serial, password)
 mqttc.connect("mqtt.eclipse.org", 1883, 60)
 
 # Start subscribe, with QoS level 0
-mqttc.subscribe("hello/world", 0)
-mqttc.subscribe("hello/worl", 0)
+mqttc.subscribe("relay/1", 0)
+mqttc.subscribe("relay/2", 0)
+mqttc.subscribe("relay/3", 0)
+mqttc.subscribe("relay/4", 0)
+
 
 # Publish a message
 # mqttc.publish("hello/world", "my message")
