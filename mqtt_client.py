@@ -49,7 +49,36 @@ def on_connect(mosq, obj, rc):
 
 
 def on_message(mosq, obj, msg):
-    print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+    #print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
+    topic = msg.topic
+    message = msg.payload.decode("utf-8")
+    
+    print(topic, message)
+    
+    if topic == "device_1":
+        if message == "On":
+            relay_1_on()
+        else:
+            relay_1_off()
+            
+    if topic == "device_2":
+        if message == "On":
+            relay_2_on()
+        else:
+            relay_2_off()
+            
+    if topic == "device_3":
+        if message == "On":
+            relay_3_on()
+        else:
+            relay_3_off()
+        
+    if topic == "device_4":
+        if message == "On":
+            relay_4_on()
+        else:
+            relay_4_off()
+                    
 
 
 def on_publish(mosq, obj, mid):
@@ -80,7 +109,7 @@ def get_device_serial():
 
 if __name__ == "__main__":
     setup_relay_pins()
-    relay_1_on()
+    relay_1_off()
     relay_2_off()
     relay_3_off()
     relay_4_off()
@@ -106,10 +135,10 @@ if __name__ == "__main__":
         mqttc.connect("mqtt.eclipse.org", 1883, 60)
 
         # Start subscribe, with QoS level 0
-        mqttc.subscribe("relay/1", 0)
-        mqttc.subscribe("relay/2", 0)
-        mqttc.subscribe("relay/3", 0)
-        mqttc.subscribe("relay/4", 0)
+        mqttc.subscribe("device_1", 0)
+        mqttc.subscribe("device_2", 0)
+        mqttc.subscribe("device_3", 0)
+        mqttc.subscribe("device_4", 0)
 
 
         # Publish a message
