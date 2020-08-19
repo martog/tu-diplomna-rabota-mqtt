@@ -57,7 +57,7 @@ def relay_4_off():
 def on_connect(mosq, obj, rc):
     print("rc: " + str(rc))
 
-def on_disconect(mosq, obj, rc):
+def on_disconnect(mosq, obj, rc):
     if rc != 0:
         print("Unexpected MQTT disconnection. Will auto-reconnect")
 
@@ -111,8 +111,8 @@ def get_device_serial():
     with open('/proc/cpuinfo', 'r') as f:
         device_serial = f.read()
         search = re.search(
-            r"\nSerial\s+:\s+(?P<serial>[0-9a-f]{16})$", device_serial)
-
+            r"\nSerial\s+:\s+(?P<serial>[0-9a-f]{16})", device_serial)
+            
         if search is None:
             raise BaseException("Cannot find device serial!")
 
