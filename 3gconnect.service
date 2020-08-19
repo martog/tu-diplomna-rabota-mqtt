@@ -1,0 +1,14 @@
+[Unit]
+Description=Connect to internet using 3g module
+After=network.target
+
+[Service]
+ExecStart=/bin/bash /home/pi/Desktop/tu-diplomna-rabota-mqtt/3gconnect.sh
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target
