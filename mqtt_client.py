@@ -57,6 +57,9 @@ def relay_4_off():
 def on_connect(mosq, obj, rc):
     print("rc: " + str(rc))
 
+def on_disconect(mosq, obj, rc):
+    if rc != 0:
+        print("Unexpected MQTT disconnection. Will auto-reconnect")
 
 def on_message(mosq, obj, msg):
     #print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
@@ -129,6 +132,7 @@ if __name__ == "__main__":
         # Assign event callbacks
         mqttc.on_message = on_message
         mqttc.on_connect = on_connect
+        mqttc.on_disconnect = on_disconnect
         mqttc.on_publish = on_publish
         mqttc.on_subscribe = on_subscribe
 
