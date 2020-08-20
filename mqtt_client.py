@@ -4,6 +4,7 @@ import urllib.parse as urlparse
 import re
 import hashlib
 import RPi.GPIO as GPIO
+import time
 
 # Define event callbacks
 
@@ -60,6 +61,7 @@ def on_connect(mosq, obj, rc):
 def on_disconnect(mosq, obj, rc):
     if rc != 0:
         print("Unexpected MQTT disconnection. Will auto-reconnect")
+        connect_to_mqtt_server(mqttc)
 
 def on_message(mosq, obj, msg):
     #print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
@@ -118,6 +120,34 @@ def get_device_serial():
 
     return search.group("serial")
 
+def connect_to_mqtt_server(mqttc):
+    device_serial = get_device_serial()
+    password = hashlib.md5(device_serial.encode('utf-8')).hexdigest()
+
+    # Connect
+    mqttc.username_pw_set(device_serial, password)
+    while True:
+        print("Trying to connect to MQTT server...")
+        time.sleep(2)
+        try:
+            mqttc.connect("mqtt.eclipse.org", 1883, 5)
+        except:
+            continue
+            
+        print("Connected")    
+        break
+   
+   # Start subscribe, with QoS level 0
+    mqttc.subscribe("device_1", 0)
+    mqttc.subscribe("device_2", 0)
+    mqttc.subscribe("device_3", 0)
+    mqttc.subscribe("device_4", 0)
+
+    # Publish a message
+    # mqttc.publish("hello/world", "my message")
+
+    # # Continue the network loop, exit when an error occurs
+    mqttc.loop_forever()     
 
 if __name__ == "__main__":
     setup_relay_pins()
@@ -125,6 +155,7 @@ if __name__ == "__main__":
     relay_2_off()
     relay_3_off()
     relay_4_off()
+    
     try:
         # Create new mqtt Client instance
         mqttc = paho.Client()
@@ -136,26 +167,8 @@ if __name__ == "__main__":
         mqttc.on_publish = on_publish
         mqttc.on_subscribe = on_subscribe
 
-        # Uncomment to enable debug messages
-        #mqttc.on_log = on_log
 
-        device_serial = get_device_serial()
-        password = hashlib.md5(device_serial.encode('utf-8')).hexdigest()
+        connect_to_mqtt_server(mqttc)
 
-        # Connect
-        mqttc.username_pw_set(device_serial, password)
-        mqttc.connect("mqtt.eclipse.org", 1883, 60)
-
-        # Start subscribe, with QoS level 0
-        mqttc.subscribe("device_1", 0)
-        mqttc.subscribe("device_2", 0)
-        mqttc.subscribe("device_3", 0)
-        mqttc.subscribe("device_4", 0)
-
-        # Publish a message
-        # mqttc.publish("hello/world", "my message")
-
-        # # Continue the network loop, exit when an error occurs
-        mqttc.loop_forever()
     finally:
         GPIO.cleanup()
