@@ -1,7 +1,6 @@
 import paho.mqtt.client as paho
 import os
 import urllib
-import re
 import hashlib
 import time
 
@@ -35,8 +34,7 @@ class MqttClient():
                 time.sleep(self.config["timeout"])
                 continue
 
-    def connect(self):
-        device_serial = self.get_device_serial()
+    def connect(self, device_serial):
         password = hashlib.md5(device_serial.encode('utf-8')).hexdigest()
 
         # Connect
@@ -72,17 +70,3 @@ class MqttClient():
     @staticmethod
     def on_subscribe(mqttc, user_data, mid, granted_qos):
         print("Subscribed: " + str(mid) + " " + str(granted_qos))
-
-    @staticmethod
-    def get_device_serial():
-        device_serial = "0000000000000000"
-
-        with open('/proc/cpuinfo', 'r') as f:
-            device_serial = f.read()
-            search = re.search(
-                r"\nSerial\s+:\s+(?P<serial>[0-9a-f]{16})", device_serial)
-
-            if search is None:
-                raise BaseException("Cannot find device serial!")
-
-        return search.group("serial")
