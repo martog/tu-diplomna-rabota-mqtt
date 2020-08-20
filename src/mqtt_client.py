@@ -83,7 +83,6 @@ class MqttClient():
                 r"\nSerial\s+:\s+(?P<serial>[0-9a-f]{16})", device_serial)
 
             if search is None:
-                return "asd"
-                # raise BaseException("Cannot find device serial!")
+                raise BaseException("Cannot find device serial!")
 
         return search.group("serial")

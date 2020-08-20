@@ -1,4 +1,4 @@
-# import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 
 class DeviceController:
     config = None
@@ -11,11 +11,15 @@ class DeviceController:
 
     def setup(self):
         # set gpio mode
-        # GPIO.setmode(config.gpio["mode"])
+        if self.config["mode"] == "BCM":
+            GPIO.setmode(GPIO.BCM)
+        else:
+            GPIO.setmode(GPIO.BOARD)
 
         # set devices pins as output
         for (device, pin) in self.devices.items():
-            # GPIO.setup(pin, GPIO.OUT)
+            GPIO.setup(pin, GPIO.OUT)
+            GPIO.output(pin, 1)
             print(device, pin)
 
     def get_devices(self):
@@ -23,14 +27,14 @@ class DeviceController:
 
     def cleanup(self):
         print("Calling GPIO.cleanup()")
-        # GPIO.cleanup()
+        GPIO.cleanup()
 
     def set_device_active(self, device_name, active: bool):
         device_pin = self.devices.get(device_name)
 
         if active:
-            # GPIO.output(device_pin, 0)
+            GPIO.output(device_pin, 0)
             print(device_pin, 0)
         else:
-            # GPIO.output(device_pin, 1)
+            GPIO.output(device_pin, 1)
             print(device_pin, 1)
