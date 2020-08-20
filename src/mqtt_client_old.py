@@ -5,8 +5,11 @@ import re
 import hashlib
 import RPi.GPIO as GPIO
 import time
+import config
 
-# Define event callbacks
+
+class MqttClient():
+    def __init__(self):
 
 
 RELAY_1_PIN = 23
@@ -58,10 +61,12 @@ def relay_4_off():
 def on_connect(mosq, obj, rc):
     print("rc: " + str(rc))
 
+
 def on_disconnect(mosq, obj, rc):
     if rc != 0:
         print("Unexpected MQTT disconnection. Will auto-reconnect")
         connect_to_mqtt_server(mqttc)
+
 
 def on_message(mosq, obj, msg):
     #print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
@@ -107,19 +112,6 @@ def on_log(mosq, obj, level, string):
     print(string)
 
 
-def get_device_serial():
-    device_serial = "0000000000000000"
-
-    with open('/proc/cpuinfo', 'r') as f:
-        device_serial = f.read()
-        search = re.search(
-            r"\nSerial\s+:\s+(?P<serial>[0-9a-f]{16})", device_serial)
-            
-        if search is None:
-            raise BaseException("Cannot find device serial!")
-
-    return search.group("serial")
-
 def connect_to_mqtt_server(mqttc):
     device_serial = get_device_serial()
     password = hashlib.md5(device_serial.encode('utf-8')).hexdigest()
@@ -133,10 +125,10 @@ def connect_to_mqtt_server(mqttc):
             mqttc.connect("mqtt.eclipse.org", 1883, 5)
         except:
             continue
-            
-        print("Connected")    
+
+        print("Connected")
         break
-   
+
    # Start subscribe, with QoS level 0
     mqttc.subscribe("device_1", 0)
     mqttc.subscribe("device_2", 0)
@@ -147,7 +139,8 @@ def connect_to_mqtt_server(mqttc):
     # mqttc.publish("hello/world", "my message")
 
     # # Continue the network loop, exit when an error occurs
-    mqttc.loop_forever()     
+    mqttc.loop_forever()
+
 
 if __name__ == "__main__":
     setup_relay_pins()
@@ -155,7 +148,7 @@ if __name__ == "__main__":
     relay_2_off()
     relay_3_off()
     relay_4_off()
-    
+
     try:
         # Create new mqtt Client instance
         mqttc = paho.Client()
@@ -166,7 +159,6 @@ if __name__ == "__main__":
         mqttc.on_disconnect = on_disconnect
         mqttc.on_publish = on_publish
         mqttc.on_subscribe = on_subscribe
-
 
         connect_to_mqtt_server(mqttc)
 
