@@ -17,13 +17,13 @@ class SmartHomeController:
 
         try:
             self.mqtt_client = MqttClient(
-                mqtt_config, devices, self.onMessageReceivedCallback)
+                mqtt_config, topics, self.onMessageReceivedCallback)
             self.mqtt_client.connect(self.device_serial)
         finally:
             self.device_controller.cleanup()
 
     def onMessageReceivedCallback(self, mqttc, user_data, msg):
-        device = msg.topic
+        device = msg.topic.split("/")[1]
         message = msg.payload.decode("utf-8")
 
         # Set device state
