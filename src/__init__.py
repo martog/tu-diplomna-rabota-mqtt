@@ -2,17 +2,19 @@ from device_controller import DeviceController
 from mqtt_client import MqttClient
 from config import mqtt as mqtt_config, gpio as devices_config
 import re
+import json
 
 
 class SmartHomeController:
     device_controller = None
     mqtt_client = None
     device_serial = None
+    devices = None
 
     def __init__(self):
         self.device_serial = self.get_device_serial()
         self.device_controller = DeviceController(devices_config)
-        devices = self.device_controller.get_devices()
+        self.devices = self.device_controller.get_devices()
         topics = [self.device_serial + "/#"]
 
         try:
@@ -23,20 +25,31 @@ class SmartHomeController:
             self.device_controller.cleanup()
 
     def onMessageReceivedCallback(self, mqttc, user_data, msg):
-        device = msg.topic.split("/")[1]
+        subtopic = msg.topic.split("/")[1]
         message = msg.payload.decode("utf-8")
-        
+        devices_names = list(self.devices.keys())
+
         print("topic: " + msg.topic + " message: " + message)
 
-        # Set device state
-        active = None
-        if(message == "On"):
-            active = True
+        
+        if(subtopic in devices_names):
+            # Set device state
+            device = subtopic
+            active = None
+            
+            if(message == "On"):
+                active = True
 
-        if(message == "Off"):
-            active = False
+            if(message == "Off"):
+                active = False
 
-        self.device_controller.set_device_active(device, active)
+            self.device_controller.set_device_active(device, active)
+            return
+            
+        if(subtopic == "devices_info"):
+            topic = self.device_serial + "/devices/info"
+            self.mqtt_client.publish(topic, json.dumps(self.devices))
+            
         
     @staticmethod
     def get_device_serial():

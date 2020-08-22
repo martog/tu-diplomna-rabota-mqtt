@@ -45,6 +45,9 @@ class MqttClient():
 
         # Continue the network loop, exit when an error occurs
         self.mqtt_client.loop_forever(timeout=self.config["timeout"])
+        
+    def publish(self, topic, message):
+        self.mqtt_client.publish(topic, message)
 
     def on_connect(self, mqttc, user_data, flags, rc):
         print("rc: " + str(rc))

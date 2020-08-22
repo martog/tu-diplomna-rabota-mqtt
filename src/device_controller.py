@@ -23,7 +23,7 @@ class DeviceController:
             print(device, pin)
 
     def get_devices(self):
-        return list(self.devices.keys())
+        return self.devices
 
     def cleanup(self):
         print("Calling GPIO.cleanup()")
