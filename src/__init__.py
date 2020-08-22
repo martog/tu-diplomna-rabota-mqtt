@@ -13,7 +13,7 @@ class SmartHomeController:
         self.device_serial = self.get_device_serial()
         self.device_controller = DeviceController(devices_config)
         devices = self.device_controller.get_devices()
-        topics = list(map(lambda device: self.device_serial + "/" + device, devices))
+        topics = [self.device_serial + "/#"]
 
         try:
             self.mqtt_client = MqttClient(
@@ -25,6 +25,8 @@ class SmartHomeController:
     def onMessageReceivedCallback(self, mqttc, user_data, msg):
         device = msg.topic.split("/")[1]
         message = msg.payload.decode("utf-8")
+        
+        print("topic: " + msg.topic + " message: " + message)
 
         # Set device state
         active = None
