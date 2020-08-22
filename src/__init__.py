@@ -25,16 +25,16 @@ class SmartHomeController:
             self.device_controller.cleanup()
 
     def onMessageReceivedCallback(self, mqttc, user_data, msg):
-        subtopic = msg.topic.split("/")[1]
-        message = msg.payload.decode("utf-8")
+        if(msg.topic == (self.device_serial + "/devices/info/req")):
+            self.mqtt_client.publish(self.device_serial + "/devices/info/res", json.dumps(self.devices))
+            return
+            
+        device = msg.topic.split("/")[1]
         devices_names = list(self.devices.keys())
-
-        print("topic: " + msg.topic + " message: " + message)
-
         
-        if(subtopic in devices_names):
+        if(device in devices_names):
             # Set device state
-            device = subtopic
+            message = msg.payload.decode("utf-8")
             active = None
             
             if(message == "On"):
@@ -44,11 +44,6 @@ class SmartHomeController:
                 active = False
 
             self.device_controller.set_device_active(device, active)
-            return
-            
-        if(subtopic == "devices_info"):
-            topic = self.device_serial + "/devices/info"
-            self.mqtt_client.publish(topic, json.dumps(self.devices))
             
         
     @staticmethod
