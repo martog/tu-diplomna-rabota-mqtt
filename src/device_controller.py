@@ -20,17 +20,20 @@ class DeviceController:
         for (device, pin) in self.devices.items():
             GPIO.setup(pin, GPIO.OUT)
             GPIO.output(pin, 1)
-            print(device, pin)
 
     def get_devices(self):
         return self.devices
         
-    def get_devices_status(self):
-        devices_status = self.devices
-        for (device, pin) in self.devices.items():
-            devices_status[device] = "Off" if GPIO.input(pin) else "On"    
+    def get_devices_info(self):
+        devices_info = {}
         
-        return devices_status    
+        for (device, pin) in self.devices.items():
+            devices_info[device] = {
+                "pin": pin,
+                "status": "Off" if GPIO.input(pin) else "On"  
+            }      
+        
+        return devices_info  
 
     def cleanup(self):
         print("Calling GPIO.cleanup()")

@@ -3,36 +3,36 @@ from mqtt_client import MqttClient
 from config import mqtt as mqtt_config, gpio as devices_config
 import re
 import json
-
+import time
+import threading
 
 class SmartHomeController:
     device_controller = None
     mqtt_client = None
     device_serial = None
     devices = None
+    loop_thread = None
+    publish_thread = None
 
     def __init__(self):
         self.device_serial = self.get_device_serial()
         self.device_controller = DeviceController(devices_config)
-        self.devices = self.device_controller.get_devices()
+        self.devices = self.device_controller.get_devices_info()
         topics = [self.device_serial + "/#"]
 
-        try:
-            self.mqtt_client = MqttClient(
-                mqtt_config, topics, self.onMessageReceivedCallback)
-            self.mqtt_client.connect(self.device_serial)
-        finally:
-            self.device_controller.cleanup()
+        print(self.devices)
+        
+        self.mqtt_client = MqttClient(
+            mqtt_config, topics, self.onMessageReceivedCallback)
+        self.mqtt_client.connect(self.device_serial)
+        
+        self.loop_thread = threading.Thread(target=self.mqtt_client.loop, daemon=True)
+        self.publish_thread = threading.Thread(target=self.publish_device_data_periodically, daemon=True)
 
     def onMessageReceivedCallback(self, mqttc, user_data, msg):
         if(msg.topic == (self.device_serial + "/devices/info/req")):
-            self.mqtt_client.publish(self.device_serial + "/devices/info/res", json.dumps(self.devices))
+            self.mqtt_client.publish(self.device_serial + "/devices/info", json.dumps(self.device_controller.get_devices_info()))
             return
-            
-        if(msg.topic == (self.device_serial + "/devices/status/req")):
-            status = self.device_controller.get_devices_status()
-            self.mqtt_client.publish(self.device_serial + "/devices/status/res", json.dumps(gpio.status))
-            return    
             
         device = msg.topic.split("/")[1]
         devices_names = list(self.devices.keys())
@@ -49,6 +49,31 @@ class SmartHomeController:
                 active = False
 
             self.device_controller.set_device_active(device, active)
+            
+    def publish_device_data_periodically(self):
+            # Periodically send devices info
+        while True:
+            print("s")
+            self.mqtt_client.publish(self.device_serial + "/devices/info", json.dumps(self.device_controller.get_devices_info()))
+            time.sleep(5)
+            
+    def run(self):
+        # Start threads and wacth their status
+        while True:
+            loop_thread_alive = sh.loop_thread.isAlive()
+            publish_thread_alive = sh.publish_thread.isAlive()
+            
+            print("loop thread active: " + str(loop_thread_alive))
+            print("publish thread active: " + str(publish_thread_alive))
+            
+            if not loop_thread_alive:
+                sh.loop_thread.start()
+                
+            if not publish_thread_alive:
+                sh.publish_thread.start()  
+                
+            
+            time.sleep(1)   
         
     @staticmethod
     def get_device_serial():
@@ -66,4 +91,12 @@ class SmartHomeController:
 
 
 if __name__ == "__main__":
-    sh = SmartHomeController()
+    try:
+        sh = SmartHomeController()
+        sh.run()
+        
+    finally:
+        sh.device_controller.cleanup()
+    
+    
+        
