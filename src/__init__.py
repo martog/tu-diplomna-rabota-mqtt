@@ -29,6 +29,11 @@ class SmartHomeController:
             self.mqtt_client.publish(self.device_serial + "/devices/info/res", json.dumps(self.devices))
             return
             
+        if(msg.topic == (self.device_serial + "/devices/status/req")):
+            status = self.device_controller.get_devices_status()
+            self.mqtt_client.publish(self.device_serial + "/devices/status/res", json.dumps(gpio.status))
+            return    
+            
         device = msg.topic.split("/")[1]
         devices_names = list(self.devices.keys())
         
@@ -44,7 +49,6 @@ class SmartHomeController:
                 active = False
 
             self.device_controller.set_device_active(device, active)
-            
         
     @staticmethod
     def get_device_serial():

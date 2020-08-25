@@ -24,6 +24,13 @@ class DeviceController:
 
     def get_devices(self):
         return self.devices
+        
+    def get_devices_status(self):
+        devices_status = self.devices
+        for (device, pin) in self.devices.items():
+            devices_status[device] = "Off" if GPIO.input(pin) else "On"    
+        
+        return devices_status    
 
     def cleanup(self):
         print("Calling GPIO.cleanup()")
