@@ -49,13 +49,14 @@ class SmartHomeController:
                 active = False
 
             self.device_controller.set_device_active(device, active)
+            self.mqtt_client.publish(self.device_serial + "/devices/" + device + "/status", json.dumps(self.device_controller.get_devices_info()[device]))
+            
             
     def publish_device_data_periodically(self):
             # Periodically send devices info
         while True:
-            print("s")
             self.mqtt_client.publish(self.device_serial + "/devices/info", json.dumps(self.device_controller.get_devices_info()))
-            time.sleep(5)
+            time.sleep(10)
             
     def run(self):
         # Start threads and wacth their status
